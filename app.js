@@ -1,8 +1,6 @@
-const HUB_APPS={food:{title:'Вкусно и просто',description:'Меню, рецепты, план питания и покупки',icon:'🍽',url:'https://vkusno-prosto-menu.vercel.app'},lunaria:{title:'Lunaria',description:'Фильмы, сериалы, книги и личная медиатека',icon:'✦',url:'https://lunaria-story-universe.vercel.app'},home:{title:'Наш дом',description:'Домашние дела, календарь и совместное планирование',icon:'⌂',url:'https://our-home-khaki.vercel.app'}};
-let currentHub='';
-function renderHub(view){const item=HUB_APPS[view];if(!item)return;$('#hubName').textContent=item.title;$('#hubDescription').textContent=item.description;$('#hubIcon').textContent=item.icon;$('#hubExternal').href=item.url;$('#hubExternalFoot').href=item.url;const frame=$('#hubFrame');if(currentHub!==view){frame.src=item.url;frame.title=item.title;currentHub=view}}
-$('#hubRefresh').onclick=()=>{let frame=$('#hubFrame');if(frame.src)frame.src=frame.src};
 'use strict';
+const HUB_APPS={food:true,lunaria:true,home:true};
+
 const OLD_KEY='akam-my-rhythm-v1', KEY='akam-my-rhythm-v2';
 const STATUSES=[['new','Новые'],['doing','В работе'],['review','Проверка'],['paused','Пауза'],['done','Завершено']];
 const FLAGS=[['interest','Создан интерес','◈'],['ev','EV проставлен','EV'],['labor','Трудозатраты внесены','▤'],['approved','Трудозатраты освоены','✓'],['finished','Интерес завершен','◆']];
