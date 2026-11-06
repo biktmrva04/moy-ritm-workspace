@@ -63,4 +63,6 @@ $('#loadDemoBtn').addEventListener('click',()=>{
  if(n){toast('Добавлены примеры: '+n+' 💙');sync()}else toast('Примеры уже добавлены');
 });
 sync();
+// app.js initializes earlier than mega.js; paint the last active personal page on reload.
+if(['food','lunaria','home'].includes(state.view) && window.renderMega)window.renderMega();
 })();
