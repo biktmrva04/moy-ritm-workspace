@@ -63,7 +63,7 @@ function render(){
 window.renderWorkCalendar=render;
 if(state.view==='calendar')render();
 function validFeed(url){
- try{const u=new URL(url);return u.protocol==='https:'&&!u.username&&!u.password&&/^(?:[a-z0-9-]+\\.)*yandex\\.(?:ru|com|kz)$/i.test(u.hostname)&&u.port===''}catch{return false}
+ try{const u=new URL(url);return u.protocol==='https:'&&!u.username&&!u.password&&/^(?:[a-z0-9-]+\.)*yandex\.(?:ru|com|kz)$/i.test(u.hostname)&&u.port===''}catch{return false}
 }
 async function syncFeeds(force=false){
  if(syncActive||!state.calendarFeeds?.length)return;
