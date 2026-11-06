@@ -259,3 +259,23 @@ body:before{opacity:.25;background-image:radial-gradient(#a8a5e5 .6px,transparen
 .linked-date-hint{font-size:10px;color:#8b7bc3;font-weight:600;margin-top:3px}
 #taskFinishLinked{background:#f0edfa!important;color:#716a99;cursor:default}
 @media(max-width:510px){.quick-result-create{flex-wrap:wrap}.quick-result-create button{width:100%}}
+
+/* Workload forecast and spent-time badges */
+.workload-snapshot{display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;margin:12px 0 5px;font-size:10px;color:#8b84af}
+.workload-snapshot strong{color:#4e4478;font-size:11px;font-weight:800}
+.workload-track{height:5px;border-radius:30px;background:#ece9fb;overflow:hidden;margin-bottom:10px}
+.workload-track>span{display:block;height:100%;border-radius:30px;background:linear-gradient(90deg,#aaa5ff,#b98ce8 70%,#ed9ccf)}
+.remaining-editor{border:1px solid #e5dff8;border-radius:16px;padding:15px;background:linear-gradient(125deg,#faf8ff,#f5f0ff);display:grid;gap:10px}
+.remaining-head{display:flex;justify-content:space-between;gap:8px;align-items:center;color:#49416e;font-size:13px}
+.remaining-status{font-size:10px;color:#826cba;background:#eae3fb;border-radius:40px;padding:6px 9px;font-weight:700}
+.remaining-figures{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.remaining-figures>div{background:#fff;border:1px solid #ece7f8;border-radius:12px;padding:10px;display:grid;gap:5px}
+.remaining-figures small{color:#9690ae;font-size:9px}
+.remaining-figures strong{font-size:16px;color:#403763}
+.remaining-figures .remaining-emphasis{background:#ece7ff;border-color:#dcd2fc}
+.remaining-figures .remaining-emphasis strong{color:#5944bb}
+.remaining-editor>.field{margin:0}
+.remaining-editor .remaining-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.remaining-actions button{padding:9px 11px;background:#fff;color:#7360bd;border:1px solid #ddd4f5;border-radius:10px;font-size:11px;font-weight:700}
+.remaining-actions span{flex:1;color:#9089b0;font-size:10px;line-height:1.6}
+@media(max-width:540px){.remaining-figures{grid-template-columns:repeat(3,minmax(0,1fr))}.remaining-figures strong{font-size:13px}}
