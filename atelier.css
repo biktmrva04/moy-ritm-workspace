@@ -369,3 +369,11 @@ body:before{opacity:.25;background-image:radial-gradient(#a8a5e5 .6px,transparen
 }
 
 .quick-admin-modal{max-width:680px;padding:24px}.quick-admin-rows{display:grid;gap:9px;max-height:45vh;overflow:auto;margin:18px 0}.quick-admin-row{display:flex;gap:9px}.quick-admin-row input,.quick-admin-create input{flex:1;min-width:0;background:#fcfaff;border:1px solid #e1d8f7;padding:11px;border-radius:11px}.quick-admin-row button{border-radius:10px;background:#fff0f4;color:#b35f8a;padding:10px 15px}.quick-admin-create{display:flex;flex-wrap:wrap;gap:9px}.quick-admin-create button{padding:11px 17px}.linked-date-reset{border-radius:8px;background:#eee9ff;color:#7462ad;font-weight:700;padding:7px 10px;font-size:10px}
+
+/* Task list refinements: no calendar intervals in kanban/week cards, small icon-only actions */
+.enhanced-card .card-operations{display:flex;gap:5px;justify-content:flex-end;margin-top:8px}
+.enhanced-card .card-operations>button{width:29px;height:28px;min-width:29px;display:grid;place-items:center;padding:0;border-radius:9px;background:#f0ecff;color:#705fbc;font-size:16px;line-height:1;box-shadow:none}
+.enhanced-card .card-operations>button:hover{background:#e4dbff;color:#4e3b9d}
+.enhanced-card .card-operations>button:focus-visible{outline:2px solid #8a71e2;outline-offset:2px}
+.enhanced-card .short-result{margin-bottom:8px}
+.enhanced-card .workload-snapshot{margin:9px 0 5px}
