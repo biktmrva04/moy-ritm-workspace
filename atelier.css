@@ -344,3 +344,26 @@ body:before{opacity:.25;background-image:radial-gradient(#a8a5e5 .6px,transparen
 .report-project-checks label:has(input:checked){background:#ebe5fc;border-color:#ae9aeb}
 .report-project-checks input{accent-color:#8470d8}
 .report-project-picker small{color:#978daf;font-size:10px}
+
+/* Reliable clearly visible filter drawer */
+#advancedFilterBackdrop{position:fixed;inset:0;z-index:1090;background:#26203a61;backdrop-filter:blur(3px)}
+#advancedFilterBackdrop.hidden{display:none!important}
+#advancedFilterPanel:not(.hidden){
+ position:fixed!important;z-index:1095!important;
+ top:18px;right:18px;left:auto;
+ width:min(590px,calc(100vw - 36px));
+ max-height:calc(100dvh - 36px);
+ display:flex;flex-direction:column;
+ margin:0!important;border-radius:23px;
+ box-shadow:0 25px 85px #2c21576b;
+ overflow:hidden;
+}
+#advancedFilterPanel .advanced-filter-head{flex-shrink:0}
+#advancedFilterPanel #advancedFilterBody{flex:1;max-height:none;overflow-y:auto;overscroll-behavior:contain}
+#advancedFilterPanel .advanced-filter-footer{flex-shrink:0}
+#advancedFilterButton{position:relative;z-index:1;cursor:pointer}
+@media(max-width:640px){
+ #advancedFilterPanel:not(.hidden){top:0;right:0;width:min(100vw,550px);max-height:100dvh;height:100dvh;border-radius:21px 0 0 21px}
+ #advancedFilterPanel .advanced-filter-head{padding:17px}
+ #advancedFilterPanel #advancedFilterBody{padding:10px}
+}
