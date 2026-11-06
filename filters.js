@@ -96,8 +96,8 @@ function section(title,description,body,open=false){return '<details class="adva
 function renderPanel(){ensureCurrent();
  const statuses=STATUSES.map(([k,v])=>[k,v]);
  const priorities=[['high','Высокий'],['medium','Средний'],['low','Низкий']];
- const types=Object.keys(state.types).sort((a,b)=>a.localeCompare(b,'ru')).map(x=>[x,x]);
- const projects=projectList().sort((a,b)=>a.localeCompare(b,'ru')).map(x=>[x,x]);
+ const types=Object.keys(state.types||{}).sort((a,b)=>a.localeCompare(b,'ru')).map(x=>[x,x]);
+ const projects=[...new Set([...(Array.isArray(state.projects)?state.projects:[]),...(Array.isArray(state.tasks)?state.tasks:[]).map(t=>t.project).filter(Boolean)])].sort((a,b)=>a.localeCompare(b,'ru')).map(x=>[x,x]);
  let h='<div class="filter-preset-bar"><label>Сохраненные наборы<select id="filterPresetSelect"><option value="">Выбрать набор…</option>'+state.taskFilterPresets.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+'</option>').join('')+'</select></label><button type="button" id="filterSavePreset">＋ Сохранить набор</button><button type="button" id="filterDeletePreset">Удалить набор</button></div>';
  h+=section('01 · Основное','Проект, тип, статус и приоритет',
  facets('statuses','Статусы',statuses)+facets('priorities','Приоритеты',priorities)+facets('types','Типы работы',types)+facets('projects','Проекты',projects)+select('projectMode','Проект заполнен',[['all','Любой'],['some','Есть проект'],['none','Без проекта']])+select('favorite','Избранное',[['all','Любое'],['yes','Только избранные'],['no','Не избранные']]),true);
@@ -113,7 +113,7 @@ function renderPanel(){ensureCurrent();
 }
 function apply(){state.taskFilterAdvanced=f;persist();render();updateSummary()}
 function close(){opened=false;$f('#advancedFilterPanel').classList.add('hidden');$f('#advancedFilterButton').setAttribute('aria-expanded','false');$f('#advancedFilterBackdrop')?.classList.add('hidden')}
-function open(){opened=true;renderPanel();$f('#advancedFilterPanel').classList.remove('hidden');$f('#advancedFilterButton').setAttribute('aria-expanded','true');$f('#advancedFilterBackdrop')?.classList.remove('hidden');updateSummary()}
+function open(){opened=true;$f('#advancedFilterPanel').classList.remove('hidden');$f('#advancedFilterButton').setAttribute('aria-expanded','true');$f('#advancedFilterBackdrop')?.classList.remove('hidden');try{renderPanel();updateSummary()}catch(error){console.error('Filters:',error);$f('#advancedFilterBody').innerHTML='<p class="filter-error">Не удалось загрузить часть параметров. Попробуй сбросить фильтры.</p>'}}
 function reset(){const clean=blank();for(const key of Object.keys(f))delete f[key];Object.assign(f,clean);state.taskFilterAdvanced=f;filter='all';query='';deadlineBefore='';$f('#search').value='';$f('#deadlineDate').value='';persist();render();if(opened)renderPanel();updateSummary()}
 // Capture the earliest click on the filter button, independent of nested labels.
 document.addEventListener('click',e=>{
