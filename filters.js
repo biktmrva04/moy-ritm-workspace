@@ -112,10 +112,16 @@ function renderPanel(){ensureCurrent();
  $f('#advancedFilterBody').innerHTML=h;
 }
 function apply(){state.taskFilterAdvanced=f;persist();render();updateSummary()}
-function close(){opened=false;$f('#advancedFilterPanel').classList.add('hidden');$f('#advancedFilterButton').setAttribute('aria-expanded','false')}
-function open(){opened=true;renderPanel();$f('#advancedFilterPanel').classList.remove('hidden');$f('#advancedFilterButton').setAttribute('aria-expanded','true');updateSummary()}
+function close(){opened=false;$f('#advancedFilterPanel').classList.add('hidden');$f('#advancedFilterButton').setAttribute('aria-expanded','false');$f('#advancedFilterBackdrop')?.classList.add('hidden')}
+function open(){opened=true;renderPanel();$f('#advancedFilterPanel').classList.remove('hidden');$f('#advancedFilterButton').setAttribute('aria-expanded','true');$f('#advancedFilterBackdrop')?.classList.remove('hidden');updateSummary()}
 function reset(){const clean=blank();for(const key of Object.keys(f))delete f[key];Object.assign(f,clean);state.taskFilterAdvanced=f;filter='all';query='';deadlineBefore='';$f('#search').value='';$f('#deadlineDate').value='';persist();render();if(opened)renderPanel();updateSummary()}
-$f('#advancedFilterButton').addEventListener('click',()=>opened?close():open());
+// Capture the earliest click on the filter button, independent of nested labels.
+document.addEventListener('click',e=>{
+ const trigger=e.target.closest('#advancedFilterButton');if(!trigger)return;
+ e.preventDefault();e.stopPropagation();
+ const isVisible=!$f('#advancedFilterPanel').classList.contains('hidden');
+ if(isVisible)close();else open();
+},true);
 $f('#advancedFilterClose').addEventListener('click',close);
 $f('#advancedFilterDone').addEventListener('click',close);
 $f('#advancedFilterReset').addEventListener('click',reset);
@@ -148,6 +154,7 @@ $f('#filterActiveRow').addEventListener('click',e=>{
  else f[field]=blank()[field];
  apply();if(opened)renderPanel();
 });
+$f('#advancedFilterBackdrop')?.addEventListener('click',close);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&opened)close()});
 updateSummary();
 })();
