@@ -3,11 +3,29 @@
 'use strict';
 const $c=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
 const H0=8,H1=22,H=64,GRID=(H1-H0)*H,step=15;
-let week=monday(iso()),chosen='',showTasks=true,showMeetings=true,gesture=null;
+let week=monday(iso()),chosen='',showTasks=true,showMeetings=true,gesture=null,syncActive=false,lastSync=0;
+state.calendarFeeds=Array.isArray(state.calendarFeeds)?state.calendarFeeds:[];
 const mins=s=>{let m=/^(\d\d?):(\d\d)$/.exec(s||'');return m?+m[1]*60+(+m[2]):null};
 const time=n=>pad(Math.floor(n/60))+':'+pad(n%60),snap=n=>Math.round(n/step)*step,clip=(n,a,b)=>Math.min(b,Math.max(a,n));
 const dates=()=>Array.from({length:7},(_,i)=>shift(week,i));
-const taskBlocks=day=>occurrences().filter(o=>o.day===day&&o.start&&o.end&&mins(o.end)>mins(o.start)&&task(o.taskId)).map(o=>({id:o.id,start:mins(o.start),end:mins(o.end),title:task(o.taskId).title,project:task(o.taskId).project,taskId:o.taskId,kind:'task'}));
+function ensureScheduledTimes(){
+ let changed=false;
+ for(const d of [...new Set(occurrences().map(o=>o.day).filter(Boolean))]){
+  const items=occurrences().filter(o=>o.day===d&&task(o.taskId));
+  const reserved=items.filter(o=>mins(o.start)!==null&&mins(o.end)>mins(o.start)).map(o=>[mins(o.start),mins(o.end)]);
+  const meetingReserved=(state.calendarEvents||[]).filter(e=>e.start&&iso(new Date(e.start))===d).map(e=>{let a=new Date(e.start),b=new Date(e.end);return [a.getHours()*60+a.getMinutes(),b.getHours()*60+b.getMinutes()]});
+  for(const occ of items.filter(o=>mins(o.start)===null||mins(o.end)===null||mins(o.end)<=mins(o.start))){
+   const t=task(occ.taskId),copies=Math.max(1,occurrences().filter(x=>x.taskId===t.id).length);
+   const duration=clip(snap((effectiveRemaining(t)||1)*60/copies),30,120);
+   let start=9*60;const overlaps=(a,b)=>[...reserved,...meetingReserved].some(([x,y])=>a<y&&b>x);
+   while(start+duration<=H1*60&&overlaps(start,start+duration))start+=15;
+   start=clip(start,H0*60,H1*60-duration);
+   occ.start=time(start);occ.end=time(start+duration);reserved.push([start,start+duration]);changed=true;
+  }
+ }
+ if(changed)persist();
+}
+const taskBlocks=day=>occurrences().filter(o=>o.day===day&&o.start&&o.end&&mins(o.end)>mins(o.start)&&task(o.taskId)).map(o=>({id:o.id,start:mins(o.start),end:mins(o.end),title:task(o.taskId).title,project:task(o.taskId).project,summary:task(o.taskId).shortResult||'',taskId:o.taskId,kind:'task'}));
 const meetingBlocks=day=>(state.calendarEvents||[]).filter(e=>{if(!e.start||!e.end)return false;return iso(new Date(e.start))===day}).map(e=>{const a=new Date(e.start),b=new Date(e.end);return {id:e.id,start:a.getHours()*60+a.getMinutes(),end:a.getHours()*60+a.getMinutes()+Math.round((b-a)/60000),title:e.title,source:e.source||'Календарь',kind:'meeting'}}).filter(e=>e.end>e.start);
 function layout(blocks){
  blocks.sort((a,b)=>a.start-b.start||b.end-a.end);
@@ -15,17 +33,24 @@ function layout(blocks){
  return blocks;
 }
 function blockHTML(b,day){
- let a=clip(b.start,H0*60,H1*60),z=clip(b.end,H0*60,H1*60);if(z<=a)return '';
+ const a=clip(b.start,H0*60,H1*60),z=clip(b.end,H0*60,H1*60);if(z<=a)return '';
  const left=b.col/b.count*100,width=100/b.count;
- const colors=['#d7e5ff','#d6f2df','#f7dbed','#e8ddff','#ffedcf'];const n=[...(b.source||'')].reduce((x,ch)=>x+ch.charCodeAt(0),0)%colors.length;const paint=b.kind==='meeting'?';background:'+colors[n]:'';
- return '<div class="cal-block '+(b.kind==='task'?'cal-work':'cal-call')+'" data-cal-block="'+esc(b.id)+'" data-cal-kind="'+b.kind+'" data-cal-day="'+day+'" style="top:'+((a-H0*60)*H/60)+'px;height:'+Math.max(25,(z-a)*H/60-2)+'px;left:calc('+left+'% + 3px);width:calc('+width+'% - 6px)'+paint+'" title="'+esc(b.title)+'"><strong>'+time(b.start)+' — '+time(b.end)+'</strong><span>'+esc(b.title)+'</span>'+(b.kind==='task'?'<i data-cal-resize="'+esc(b.id)+'" title="Растянуть задачу">⋮⋮</i>':'')+'</div>';
+ const colors=['#d7e5ff','#d6f2df','#f7dbed','#e8ddff','#ffedcf'];
+ const n=[...(b.source||'')].reduce((x,ch)=>x+ch.charCodeAt(0),0)%colors.length;
+ const paint=b.kind==='meeting'?';background:'+colors[n]:'';
+ const duration=z-a,compact=duration<=45?' cal-compact':'';
+ const actions=b.kind==='task'?'<div class="cal-item-actions"><button type="button" data-cal-copy="'+esc(b.taskId)+'" aria-label="Копировать задачу" title="Копировать">⧉</button><button type="button" data-cal-continue="'+esc(b.id)+'" aria-label="Продолжить задачу" title="Продолжить">↪</button></div>':'';
+ return '<article class="cal-block '+(b.kind==='task'?'cal-work':'cal-call')+compact+'" data-cal-block="'+esc(b.id)+'" data-cal-kind="'+b.kind+'" data-cal-day="'+day+'" style="top:'+((a-H0*60)*H/60)+'px;height:'+Math.max(25,(z-a)*H/60-2)+'px;left:calc('+left+'% + 3px);width:calc('+width+'% - 6px)'+paint+'" title="'+esc(b.title)+'"><div class="cal-block-time">◷ '+time(b.start)+'–'+time(b.end)+'</div><div class="cal-block-title">'+esc(b.title)+'</div>'+(b.kind==='task'?'<div class="cal-block-summary">'+esc(b.summary||'Нет краткого итога')+'</div>':'')+actions+(b.kind==='task'?'<i data-cal-resize="'+esc(b.id)+'" title="Изменить длительность">⋮⋮</i>':'')+'</article>';
 }
+
 function render(){
  if(state.view!=='calendar')return;
  if(!Array.isArray(state.calendarEvents))state.calendarEvents=[];
+ ensureScheduledTimes();
  const ddays=dates(),view=$c('#calendarView');if(!view)return;
  view.innerHTML='<div class="cal-intro"><div><div class="cal-overline">✦ PLAN YOUR MAGIC</div><h2>Мой календарь <span>✿</span></h2><p>Для созвонов, задач и времени на себя</p></div><div class="cal-arrows"><button data-cal-page="-1">←</button><button data-cal-page="0">Сегодня</button><button data-cal-page="1">→</button><b>'+date(ddays[0]).toLocaleDateString('ru-RU',{day:'numeric',month:'short'})+' — '+date(ddays[6]).toLocaleDateString('ru-RU',{day:'numeric',month:'short'})+'</b></div></div>'+
  '<div class="cal-controls"><label class="cal-pick">Задача<select id="calTaskChoice"><option value="">Выбери задачу…</option>'+state.tasks.map(t=>'<option value="'+esc(t.id)+'" '+(chosen===t.id?'selected':'')+'>'+esc(t.title)+'</option>').join('')+'</select></label><button id="calPlace" class="cal-primary">＋ Запланировать</button><label class="cal-check"><input type="checkbox" id="calShowTasks" '+(showTasks?'checked':'')+'> Задачи</label><label class="cal-check"><input type="checkbox" id="calShowMeetings" '+(showMeetings?'checked':'')+'> Созвоны</label><label class="cal-import">↥ Импорт .ics<input type="file" id="calIcs" accept=".ics,text/calendar" hidden></label><button id="calClear">Очистить импорт</button></div>'+
+ '<div class="cal-feed-panel"><div class="cal-feed-heading"><strong>↻ Автосинхронизация с Яндекс Календарем</strong><span id="calSyncStatus">'+(state.calendarFeeds.length?'Обновление каждые 15 минут, пока сайт открыт':'Подключи ссылку iCal')+'</span></div><div class="cal-feed-input"><input id="calFeedUrl" type="url" autocomplete="off" spellcheck="false" placeholder="https://calendar.yandex.ru/… (ссылка iCal)"><button id="calFeedAdd" type="button">＋ Подключить</button><button id="calSyncNow" type="button">↻ Обновить сейчас</button></div><div class="cal-feed-list">'+state.calendarFeeds.map(x=>'<span class="cal-feed-chip"><b>'+esc(x.name||'Яндекс Календарь')+'</b><button type="button" data-cal-feed-remove="'+esc(x.id)+'" title="Отключить календарь">×</button></span>').join('')+'</div><small>Укажи ссылку экспорта iCal из настроек Яндекс Календаря. Пароль не нужен. События автоматически обновляются при открытии сайта и далее каждые 15 минут.</small></div>'+
  '<div class="cal-info">Перетаскивай цветные блоки по сетке, чтобы менять день и время. Тяни нижний край для изменения длительности. Шаг — 15 минут. Созвоны из Яндекса доступны для просмотра.</div>'+
  '<div class="cal-scroll"><div class="cal-grid"><div class="cal-time-title">GMT '+(new Date().getTimezoneOffset()<=0?'+':'')+(-new Date().getTimezoneOffset()/60)+'</div>'+
  ddays.map((day,i)=>'<div class="cal-day-title '+(day===iso()?'today':'')+'"><small>'+['пн','вт','ср','чт','пт','сб','вс'][i]+'</small><strong>'+date(day).getDate()+'</strong></div>').join('')+
@@ -33,10 +58,38 @@ function render(){
  ddays.map(day=>'<div class="cal-day '+(day===iso()?'today':'')+'" data-cal-date="'+day+'" style="height:'+GRID+'px">'+Array.from({length:H1-H0},(_,i)=>'<div class="cal-hour" style="top:'+(i*H)+'px"></div>').join('')+
  layout([...(showTasks?taskBlocks(day):[]),...(showMeetings?meetingBlocks(day):[])]).map(b=>blockHTML(b,day)).join('')+'</div>').join('')+'</div></div>'+
  '<div class="cal-foot"><span><i class="cal-work-dot"></i> Мои задачи</span><span><i class="cal-call-dot"></i> Созвоны из Яндекса</span><span>'+state.calendarEvents.length+' событий импортировано</span></div>'+
- '<p class="cal-source">Для импорта: Яндекс Календарь → настройки нужного календаря → Экспорт → iCal → скачать файл .ics. Затем выбери файл выше. Это разовый импорт, не автоматическая синхронизация.</p>';
+ '<p class="cal-source">Для импорта: Яндекс Календарь → настройки нужного календаря → Экспорт → iCal → скачать файл .ics. Затем выбери файл выше. Файл .ics — разовый импорт. Для автоматической синхронизации подключи ссылку iCal выше.</p>';
 }
 window.renderWorkCalendar=render;
 if(state.view==='calendar')render();
+function validFeed(url){
+ try{const u=new URL(url);return u.protocol==='https:'&&!u.username&&!u.password&&/^(?:[a-z0-9-]+\\.)*yandex\\.(?:ru|com|kz)$/i.test(u.hostname)&&u.port===''}catch{return false}
+}
+async function syncFeeds(force=false){
+ if(syncActive||!state.calendarFeeds?.length)return;
+ if(!force&&Date.now()-lastSync<14*60000)return;
+ syncActive=true;
+ const feedback=$c('#calSyncStatus');if(feedback)feedback.textContent='Синхронизация…';
+ let updated=0,failed=0;
+ for(const feed of state.calendarFeeds){
+  try{
+   const response=await fetch('/api/calendar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:feed.url})});
+   if(!response.ok)throw Error('HTTP '+response.status);
+   const body=await response.text();if(!body.includes('BEGIN:VCALENDAR'))throw Error('Неверный iCal');
+   const events=parseICS(body).map(e=>({...e,source:feed.id}));
+   state.calendarEvents=(state.calendarEvents||[]).filter(e=>e.source!==feed.id).concat(events);
+   feed.syncedAt=new Date().toISOString();feed.error='';updated+=events.length;
+  }catch(error){feed.error=String(error.message).slice(0,100);failed++;console.warn('iCal sync',error)}
+ }
+ syncActive=false;lastSync=Date.now();persist();if(state.view==='calendar')render();
+ const msg=failed?'Обновлено: '+updated+' · Ошибок: '+failed:'Синхронизировано событий: '+updated;
+ const el=$c('#calSyncStatus');if(el)el.textContent=msg;
+ if(force)toast(msg);
+}
+window.syncYandexCalendar=syncFeeds;
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncFeeds(false)});
+setInterval(()=>syncFeeds(false),15*60000);
+setTimeout(()=>syncFeeds(false),1500);
 function place(id,day,start,end){
  let t=task(id);if(!t)return;
  const free=occurrences().find(o=>o.taskId===id&&o.day===day&&!o.start&&!o.end);
@@ -86,6 +139,11 @@ const root=$c('#calendarView');
 root.addEventListener('click',e=>{
  const pg=e.target.closest('[data-cal-page]');if(pg){week=pg.dataset.calPage==='0'?monday(iso()):shift(week,+pg.dataset.calPage*7);render();return}
  if(e.target.id==='calPlace'){schedule();return}
+ if(e.target.id==='calSyncNow'){syncFeeds(true);return}
+ if(e.target.id==='calFeedAdd'){const input=$c('#calFeedUrl'),url=input?.value.trim();if(!validFeed(url)){toast('Нужна HTTPS-ссылка iCal от Яндекса');return}if(state.calendarFeeds.some(x=>x.url===url)){toast('Календарь уже подключен');return}state.calendarFeeds.push({id:uid(),name:'Яндекс '+(state.calendarFeeds.length+1),url,syncedAt:'',error:''});persist();render();syncFeeds(true);return}
+ const remove=e.target.closest('[data-cal-feed-remove]');if(remove){const id=remove.dataset.calFeedRemove;if(!confirm('Отключить этот календарь?'))return;state.calendarFeeds=state.calendarFeeds.filter(x=>x.id!==id);state.calendarEvents=state.calendarEvents.filter(x=>x.source!==id);persist();render();return}
+ const duplicate=e.target.closest('[data-cal-copy]');if(duplicate){e.stopPropagation();copyTask(duplicate.dataset.calCopy);return}
+ const continueBtn=e.target.closest('[data-cal-continue]');if(continueBtn){e.stopPropagation();const o=occurrences().find(x=>x.id===continueBtn.dataset.calContinue);if(o)createContinuation(o.taskId,shift(o.day,1),o.start,o.end);return}
  if(e.target.id==='calClear'){if(!confirm('Удалить все импортированные события? Задачи не изменятся.'))return;state.calendarEvents=[];persist();render();return}
  const entry=e.target.closest('[data-cal-block]');if(entry&&entry.dataset.calKind==='meeting'){const evt=state.calendarEvents.find(x=>x.id===entry.dataset.calBlock);if(evt)toast('Созвон: '+evt.title);return}
  // Task clicks are handled by pointerup to avoid opening twice.
@@ -102,7 +160,7 @@ root.addEventListener('change',async e=>{
  }
 });
 root.addEventListener('pointerdown',e=>{
- const el=e.target.closest('[data-cal-block]');if(!el||el.dataset.calKind!=='task'||e.button!==0)return;
+ const el=e.target.closest('[data-cal-block]');if(!el||el.dataset.calKind!=='task'||e.button!==0||e.target.closest('button'))return;
  const o=occurrences().find(x=>x.id===el.dataset.calBlock);if(!o)return;
  e.preventDefault();const resizing=!!e.target.closest('[data-cal-resize]');
  gesture={id:o.id,startY:e.clientY,startX:e.clientX,initial:mins(o.start),end:mins(o.end),day:o.day,resizing,moved:false};
