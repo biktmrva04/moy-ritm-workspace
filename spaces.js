@@ -14,6 +14,7 @@ const selected={work:state.view==='week'?'week':state.view==='admin'?'admin':'bo
 let lastWorkspace='';
 function sync(v=state.view){
  const space=byView(v),cfg=spaces[space];
+ document.documentElement.dataset.space=space;
  $('#spaceCurrentIcon').textContent=cfg.icon;
  $('#spaceCurrentLabel').textContent=cfg.title;
  $('#spaceSidebarTitle').textContent=cfg.label;
