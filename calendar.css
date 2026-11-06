@@ -80,3 +80,15 @@
 .cal-work-dot{background:#a8dfbc}.cal-call-dot{background:#bad2ff}
 @media(max-width:1100px){.week-grid{grid-template-columns:repeat(5,minmax(200px,1fr))}.week-top:after{opacity:.55}.week-toolbar{max-width:520px}}
 @media(max-width:650px){.week-top{padding:17px}.week-top:after{display:none}.week-toolbar{width:100%}.week-grid{grid-template-columns:repeat(5,minmax(205px,1fr))}.cal-intro{padding:16px}.cal-intro:after{opacity:.5}.cal-intro h2{font-size:27px}}
+
+.cal-feed-panel{margin:16px 0 12px;background:linear-gradient(105deg,#f5f0ff,#f1f5ff);border:1px solid #e0d9f7;border-radius:16px;padding:16px;display:grid;gap:10px}
+.cal-feed-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.cal-feed-heading strong{font-size:13px;color:#51447c}.cal-feed-heading span{font-size:10px;color:#8276ae}
+.cal-feed-input{display:flex;gap:8px;flex-wrap:wrap}.cal-feed-input input{min-width:220px;flex:1;padding:11px 12px;border:1px solid #ded4f4;border-radius:11px;background:#fff}
+.cal-feed-input button{padding:10px 12px;background:#51437f;color:white;border-radius:10px;font-size:11px;font-weight:750}
+.cal-feed-list{display:flex;flex-wrap:wrap;gap:7px}.cal-feed-chip{display:inline-flex;gap:8px;align-items:center;background:white;border-radius:10px;padding:8px 10px;color:#6d58b2;font-size:11px}.cal-feed-chip button{background:#efeafd;border-radius:50%;height:19px;width:19px;color:#9777bc}
+.cal-feed-panel small{font-size:10px;color:#8b80a9}
+.cal-work{background:linear-gradient(135deg,#fdfbff,#e8f8f0);border:1px solid #c4e8d2;color:#2d5650;box-shadow:0 5px 12px #6b898b2e}
+.cal-block{padding:7px 8px 18px;gap:5px;border-radius:12px}
+.cal-block-time{font-size:9px;color:#5d77a5;font-weight:800}.cal-block-title{font-size:11px;line-height:1.28;font-weight:800;color:#34465d;overflow:hidden}
+.cal-block-summary{font-size:9px;line-height:1.3;color:#7e88a0;overflow:hidden}.cal-item-actions{display:flex;gap:5px;margin-top:auto}.cal-item-actions button{padding:2px 6px;border-radius:6px;background:#ffffffca;color:#647fb5;font-size:13px;font-weight:800}
+.cal-item-actions button:hover{background:#dce4ff}.cal-block.cal-compact .cal-block-summary,.cal-block.cal-compact .cal-item-actions{display:none}
