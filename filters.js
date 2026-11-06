@@ -43,7 +43,6 @@ function anyMatch(t){ensureCurrent();
  if(f.activity==='noToday'&&workedToday>0)return false;
  if(f.activity==='running'&&state.timer?.taskId!==t.id)return false;
  if(!inRange(Number(t.estimate)||0,f.estimateMin,f.estimateMax))return false;
- if(!inRange(effectiveRemaining(t),f.remainingMin,f.remainingMax))return false;
  if(!inRange(workedTotal/3600,f.workedMin,f.workedMax))return false;
  const linkTests={crm:!!t.crm,kaiten:!!t.kaiten,documents:!!t.documents?.length,comments:!!t.comments?.length};
  for(const [key,value] of Object.entries(linkTests)){if(f[key]==='yes'&&!value)return false;if(f[key]==='no'&&value)return false}
@@ -60,8 +59,6 @@ const priorityOrder={high:0,medium:1,low:2};
 window.taskFilterSort=(a,b)=>{ensureCurrent();switch(f.sort){
  case 'dueAsc':return (a.deadline||'9999').localeCompare(b.deadline||'9999');
  case 'dueDesc':return (b.deadline||'0000').localeCompare(a.deadline||'0000');
- case 'remainingDesc':return effectiveRemaining(b)-effectiveRemaining(a);
- case 'remainingAsc':return effectiveRemaining(a)-effectiveRemaining(b);
  case 'spentDesc':return elapsed(b.id)-elapsed(a.id);
  case 'priority':return (priorityOrder[a.priority]??3)-(priorityOrder[b.priority]??3);
  case 'project':return (a.project||'').localeCompare(b.project||'','ru');
@@ -103,12 +100,12 @@ function renderPanel(){ensureCurrent();
  facets('statuses','Статусы',statuses)+facets('priorities','Приоритеты',priorities)+facets('types','Типы работы',types)+facets('projects','Проекты',projects)+select('projectMode','Проект заполнен',[['all','Любой'],['some','Есть проект'],['none','Без проекта']])+select('favorite','Избранное',[['all','Любое'],['yes','Только избранные'],['no','Не избранные']]),true);
  h+=section('02 · Даты и сроки','Дедлайны и дни планирования',
  '<div class="advanced-filter-grid">'+select('deadline','Дедлайн',[['all','Любой'],['overdue','Просрочен'],['today','Сегодня'],['tomorrow','Завтра'],['week','На этой неделе'],['next7','В ближайшие 7 дней'],['none','Без дедлайна'],['custom','Свой диапазон']])+dateField('dueFrom','Дедлайн с')+dateField('dueTo','Дедлайн по')+select('plan','В календаре',[['all','Любой'],['today','Запланировано сегодня'],['week','На этой неделе'],['custom','Свой диапазон'],['none','Без даты в плане']])+dateField('planFrom','Запланировано с')+dateField('planTo','Запланировано по')+'</div>');
- h+=section('03 · Загрузка и трудозатраты','Сколько уже работала и сколько осталось',
- '<div class="advanced-filter-grid">'+select('activity','Фактическая активность',[['all','Любая'],['today5','Сегодня ≥ 5 мин'],['week5','Неделя ≥ 5 мин'],['today','Любая работа сегодня'],['week','Любая работа за неделю'],['noToday','Сегодня без трудозатрат'],['never','Без трудозатрат вообще'],['running','Таймер запущен']])+numberField('remainingMin','Остаток от, ч')+numberField('remainingMax','Остаток до, ч')+numberField('workedMin','Факт от, ч')+numberField('workedMax','Факт до, ч')+numberField('estimateMin','План от, ч')+numberField('estimateMax','План до, ч')+'</div>');
+ h+=section('03 · Загрузка и трудозатраты','Плановые и фактические часы',
+ '<div class="advanced-filter-grid">'+select('activity','Фактическая активность',[['all','Любая'],['today5','Сегодня ≥ 5 мин'],['week5','Неделя ≥ 5 мин'],['today','Любая работа сегодня'],['week','Любая работа за неделю'],['noToday','Сегодня без трудозатрат'],['never','Без трудозатрат вообще'],['running','Таймер запущен']])+numberField('workedMin','Факт от, ч')+numberField('workedMax','Факт до, ч')+numberField('estimateMin','План от, ч')+numberField('estimateMax','План до, ч')+'</div>');
  h+=section('04 · Содержимое и CRM','Ссылки, чек-листы, записи, отметки',
  '<div class="advanced-filter-grid">'+tri('crm','Ссылка CRM')+tri('kaiten','Ссылка Kaiten')+tri('documents','Документы / ссылки')+tri('comments','Комментарии')+select('checklist','Чек-лист',[['all','Любой'],['none','Нет чек-листа'],['allDone','Полностью выполнен'],['unfinished','Есть невыполненные'],['started','Выполнен частично']])+'</div><fieldset class="filter-facet"><legend>Отметки CRM</legend><div class="advanced-flag-grid">'+FLAGS.map(([id,label])=>'<label class="filter-field">'+esc(label)+'<select data-adv-flag="'+esc(id)+'">'+opts([['all','Любая'],['yes','Да'],['no','Нет']],f.flags[id]||'all')+'</select></label>').join('')+'</div></fieldset>');
  h+=section('05 · Сортировка','Как показывать карточки',
- select('sort','Сортировать внутри колонок',[['default','Как сейчас'],['dueAsc','Сначала ближайший дедлайн'],['dueDesc','Сначала дальний дедлайн'],['priority','Сначала высокий приоритет'],['remainingDesc','Больше всего оставшихся часов'],['remainingAsc','Меньше всего оставшихся часов'],['spentDesc','Больше всего отработано'],['project','По проекту А–Я']]));
+ select('sort','Сортировать внутри колонок',[['default','Как сейчас'],['dueAsc','Сначала ближайший дедлайн'],['dueDesc','Сначала дальний дедлайн'],['priority','Сначала высокий приоритет'],['spentDesc','Больше всего отработано'],['project','По проекту А–Я']]));
  $f('#advancedFilterBody').innerHTML=h;
 }
 function apply(){state.taskFilterAdvanced=f;persist();render();updateSummary()}
