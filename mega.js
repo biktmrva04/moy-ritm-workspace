@@ -77,4 +77,38 @@ if(form.id==='megaRecipeForm'){const obj={...values,id,servings:Number(values.se
 if(form.id==='megaMediaForm'){const obj={...values,id,rating:Math.min(5,Math.max(0,Math.round(Number(values.rating)||0)))};d.media=d.media.filter(x=>x.id!==id);d.media.push(obj)}
 if(form.id==='megaHomeForm'){const obj={...values,id,days:[...form.querySelectorAll('input[name="days"]:checked')].map(x=>Number(x.value)),interval:Number(values.interval)||2};d.homeTasks=d.homeTasks.filter(x=>x.id!==id);d.homeTasks.push(obj)}
 closeModal();save();toast('Сохранено 💙')});
+/* Примеры устанавливаются только по запросу, без замены личных данных */
+window.megaInstallDemo=function(space){
+ const d=db();let added=0;
+ const appendUnique=(key,list)=>{for(const item of list){if(!d[key].some(x=>x.id===item.id)){d[key].push(item);added++}}};
+ if(space==='food'){
+  appendUnique('recipes',[
+   {id:'example-food-1',title:'Сырники с ягодами',emoji:'🥞',category:'Завтрак',servings:2,description:'Нежные сырники для завтрака',calories:340,protein:23,fat:12,carbs:36,ingredients:[{name:'Творог',amount:300,unit:'г'},{name:'Яйцо',amount:1,unit:'шт'},{name:'Мука',amount:40,unit:'г'},{name:'Ягоды',amount:100,unit:'г'}],steps:['Смешать творог с яйцом и мукой','Сформировать сырники','Обжарить или запечь и подать с ягодами']},
+   {id:'example-food-2',title:'Гречка с овощами',emoji:'🥗',category:'Обед',servings:2,description:'Простой обед из крупы и овощей',calories:390,protein:13,fat:10,carbs:61,ingredients:[{name:'Гречка',amount:150,unit:'г'},{name:'Морковь',amount:1,unit:'шт'},{name:'Лук',amount:1,unit:'шт'}],steps:['Отварить гречку','Обжарить лук с морковью','Смешать с гречкой']},
+   {id:'example-food-3',title:'Омлет с сыром',emoji:'🍳',category:'Завтрак',servings:1,description:'Быстрый завтрак',calories:290,protein:22,fat:20,carbs:3,ingredients:[{name:'Яйцо',amount:2,unit:'шт'},{name:'Сыр',amount:30,unit:'г'},{name:'Молоко',amount:40,unit:'мл'}],steps:['Взбить яйца с молоком','Добавить тертый сыр','Приготовить под крышкой']}
+  ]);
+  const key=addDate(monday(week),0);
+  if(!d.meals[key]||Object.keys(d.meals[key]).length===0){
+   d.meals[key]={0:{'Завтрак':'example-food-1'},1:{'Обед':'example-food-2'},2:{'Завтрак':'example-food-3'}};
+  }
+ }
+ if(space==='lunaria'){
+  appendUnique('media',[
+   {id:'example-media-1',title:'Интерстеллар',type:'Фильмы',status:'В планах',genre:'Научная фантастика',author:'Кристофер Нолан',rating:5,cover:'',notes:'Пример фильма'},
+   {id:'example-media-2',title:'Шерлок',type:'Сериалы',status:'В процессе',genre:'Детектив',author:'',rating:4,cover:'',notes:'Пример сериала'},
+   {id:'example-media-3',title:'Маленький принц',type:'Книги',status:'В планах',genre:'Повесть',author:'Антуан де Сент-Экзюпери',rating:5,cover:'',notes:'Пример книги'},
+   {id:'example-media-4',title:'Мой фанфик',type:'Фанфики',status:'В планах',genre:'Приключения',author:'',rating:3,cover:'',notes:'Пример записи'}
+  ]);
+ }
+ if(space==='home'){
+  appendUnique('homeTasks',[
+   {id:'example-home-1',title:'Полить растения',description:'Проверить все горшки',assignee:'Я',start:today(),repeat:'Ежедневно',interval:1,days:[]},
+   {id:'example-home-2',title:'Убрать кухню',description:'Протереть столешницу и раковину',assignee:'Партнер',start:today(),repeat:'По дням недели',interval:1,days:[1,3,5]},
+   {id:'example-home-3',title:'Поменять постельное белье',description:'Раз в неделю',assignee:'Я',start:today(),repeat:'Каждые N дней',interval:7,days:[]}
+  ]);
+ }
+ if(added){persist();draw()}
+ return added;
+};
+
 })();
