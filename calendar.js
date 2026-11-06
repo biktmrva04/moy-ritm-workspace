@@ -98,7 +98,7 @@ function place(id,day,start,end){
 }
 function schedule(){
  chosen=$c('#calTaskChoice').value;if(!chosen){toast('Сначала выбери задачу');return}
- const d=iso(),length=clip(snap((effectiveRemaining(task(chosen))||1)*60),30,180),today=dates().includes(d)?d:dates()[0];
+ const d=iso(),length=clip(snap((Number(task(chosen)?.estimate)||1)*60),30,180),today=dates().includes(d)?d:dates()[0];
  place(chosen,today,9*60,Math.min(H1*60,9*60+length));
 }
 function changeBlock(id,day,start,end){
