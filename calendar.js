@@ -8,7 +8,7 @@ const mins=s=>{let m=/^(\d\d?):(\d\d)$/.exec(s||'');return m?+m[1]*60+(+m[2]):nu
 const time=n=>pad(Math.floor(n/60))+':'+pad(n%60),snap=n=>Math.round(n/step)*step,clip=(n,a,b)=>Math.min(b,Math.max(a,n));
 const dates=()=>Array.from({length:7},(_,i)=>shift(week,i));
 const taskBlocks=day=>occurrences().filter(o=>o.day===day&&o.start&&o.end&&mins(o.end)>mins(o.start)&&task(o.taskId)).map(o=>({id:o.id,start:mins(o.start),end:mins(o.end),title:task(o.taskId).title,project:task(o.taskId).project,taskId:o.taskId,kind:'task'}));
-const meetingBlocks=day=>(state.calendarEvents||[]).filter(e=>{if(!e.start||!e.end)return false;return iso(new Date(e.start))===day}).map(e=>{const a=new Date(e.start),b=new Date(e.end);return {id:e.id,start:a.getHours()*60+a.getMinutes(),end:a.getHours()*60+a.getMinutes()+Math.round((b-a)/60000),title:e.title,kind:'meeting'}}).filter(e=>e.end>e.start);
+const meetingBlocks=day=>(state.calendarEvents||[]).filter(e=>{if(!e.start||!e.end)return false;return iso(new Date(e.start))===day}).map(e=>{const a=new Date(e.start),b=new Date(e.end);return {id:e.id,start:a.getHours()*60+a.getMinutes(),end:a.getHours()*60+a.getMinutes()+Math.round((b-a)/60000),title:e.title,source:e.source||'Календарь',kind:'meeting'}}).filter(e=>e.end>e.start);
 function layout(blocks){
  blocks.sort((a,b)=>a.start-b.start||b.end-a.end);
  for(const block of blocks){const intersect=blocks.filter(x=>x.start<block.end&&block.start<x.end).sort((a,b)=>a.start-b.start||a.id.localeCompare(b.id));block.col=intersect.findIndex(x=>x.id===block.id);block.count=intersect.length}
@@ -17,7 +17,8 @@ function layout(blocks){
 function blockHTML(b,day){
  let a=clip(b.start,H0*60,H1*60),z=clip(b.end,H0*60,H1*60);if(z<=a)return '';
  const left=b.col/b.count*100,width=100/b.count;
- return '<div class="cal-block '+(b.kind==='task'?'cal-work':'cal-call')+'" data-cal-block="'+esc(b.id)+'" data-cal-kind="'+b.kind+'" data-cal-day="'+day+'" style="top:'+((a-H0*60)*H/60)+'px;height:'+Math.max(25,(z-a)*H/60-2)+'px;left:calc('+left+'% + 3px);width:calc('+width+'% - 6px)" title="'+esc(b.title)+'"><strong>'+time(b.start)+' — '+time(b.end)+'</strong><span>'+esc(b.title)+'</span>'+(b.kind==='task'?'<i data-cal-resize="'+esc(b.id)+'" title="Растянуть задачу">⋮⋮</i>':'')+'</div>';
+ const colors=['#d7e5ff','#d6f2df','#f7dbed','#e8ddff','#ffedcf'];const n=[...(b.source||'')].reduce((x,ch)=>x+ch.charCodeAt(0),0)%colors.length;const paint=b.kind==='meeting'?';background:'+colors[n]:'';
+ return '<div class="cal-block '+(b.kind==='task'?'cal-work':'cal-call')+'" data-cal-block="'+esc(b.id)+'" data-cal-kind="'+b.kind+'" data-cal-day="'+day+'" style="top:'+((a-H0*60)*H/60)+'px;height:'+Math.max(25,(z-a)*H/60-2)+'px;left:calc('+left+'% + 3px);width:calc('+width+'% - 6px)'+paint+'" title="'+esc(b.title)+'"><strong>'+time(b.start)+' — '+time(b.end)+'</strong><span>'+esc(b.title)+'</span>'+(b.kind==='task'?'<i data-cal-resize="'+esc(b.id)+'" title="Растянуть задачу">⋮⋮</i>':'')+'</div>';
 }
 function render(){
  if(state.view!=='calendar')return;
@@ -97,7 +98,7 @@ root.addEventListener('change',async e=>{
   const file=e.target.files?.[0];if(!file)return;
   if(file.size>6*1024*1024){toast('Файл больше 6 МБ');return}
   try{const imported=parseICS(await file.text());if(!imported.length){toast('Не нашла события в файле .ics');return}
-   state.calendarEvents=imported;persist();render();toast('Импортировано событий: '+imported.length)}catch(err){console.error(err);toast('Не удалось прочитать iCal-файл')}
+   const other=state.calendarEvents.filter(x=>x.source!==file.name);state.calendarEvents=[...other,...imported.map(x=>({...x,source:file.name}))];persist();render();toast('Обновлен календарь '+file.name+': '+imported.length+' событий')}catch(err){console.error(err);toast('Не удалось прочитать iCal-файл')}
  }
 });
 root.addEventListener('pointerdown',e=>{
