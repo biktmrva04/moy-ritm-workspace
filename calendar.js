@@ -35,6 +35,7 @@ function render(){
  '<p class="cal-source">Для импорта: Яндекс Календарь → настройки нужного календаря → Экспорт → iCal → скачать файл .ics. Затем выбери файл выше. Это разовый импорт, не автоматическая синхронизация.</p>';
 }
 window.renderWorkCalendar=render;
+if(state.view==='calendar')render();
 function place(id,day,start,end){
  let t=task(id);if(!t)return;
  const free=occurrences().find(o=>o.taskId===id&&o.day===day&&!o.start&&!o.end);
