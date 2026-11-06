@@ -9,11 +9,12 @@ function normalized(input){let out={...blank(),...(input||{})};for(const key of 
 state.taskFilterAdvanced=normalized(state.taskFilterAdvanced);
 state.taskFilterPresets=Array.isArray(state.taskFilterPresets)?state.taskFilterPresets:[];
 let f=state.taskFilterAdvanced,opened=false;
+function ensureCurrent(){if(state.taskFilterAdvanced!==f){f=normalized(state.taskFilterAdvanced);state.taskFilterAdvanced=f}}
 const tday=()=>iso(),isodate=d=>iso(d),weekStart=()=>monday(tday()),weekEnd=()=>shift(weekStart(),6);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function number(value){return value===''||value===null||value===undefined?null:Number(value)}
 function inRange(value,min,max){const a=number(min),b=number(max);return (a===null||value>=a)&&(b===null||value<=b)}
-function anyMatch(t){
+function anyMatch(t){ensureCurrent();
  if(f.statuses.length&&!f.statuses.includes(t.status))return false;
  if(f.priorities.length&&!f.priorities.includes(t.priority))return false;
  if(f.types.length&&!f.types.includes(t.type))return false;
@@ -56,7 +57,7 @@ function anyMatch(t){
 }
 window.taskAdvancedMatch=anyMatch;
 const priorityOrder={high:0,medium:1,low:2};
-window.taskFilterSort=(a,b)=>{switch(f.sort){
+window.taskFilterSort=(a,b)=>{ensureCurrent();switch(f.sort){
  case 'dueAsc':return (a.deadline||'9999').localeCompare(b.deadline||'9999');
  case 'dueDesc':return (b.deadline||'0000').localeCompare(a.deadline||'0000');
  case 'remainingDesc':return effectiveRemaining(b)-effectiveRemaining(a);
@@ -69,7 +70,7 @@ window.taskFilterSort=(a,b)=>{switch(f.sort){
 function nonDefault(){const d=blank();return Object.keys(d).filter(k=>{if(k==='sort')return f.sort!==d.sort;if(keys.includes(k))return f[k].length>0;if(k==='flags')return Object.values(f.flags).some(x=>x!=='all');return f[k]!==d[k]})}
 function summary(){const n=nonDefault().length;const basic=(filter!=='all'?1:0)+(query?1:0)+(deadlineBefore?1:0);return n+basic}
 function pill(label,value,field){return '<span class="filter-pill">'+esc(label)+' <b>'+esc(value)+'</b>'+(field?'<button type="button" data-remove-advanced="'+esc(field)+'" title="Убрать фильтр">×</button>':'')+'</span>'}
-function updateSummary(){
+function updateSummary(){ensureCurrent();
  const count=summary(),badge=$f('#advancedFilterCount');badge.textContent=count?String(count):'';
  badge.classList.toggle('hidden',!count);
  $f('#advancedFilterButton').classList.toggle('has-filters',!!count);
@@ -92,7 +93,7 @@ function dateField(name,title){return '<label class="filter-field">'+title+'<inp
 function facets(name,title,items){return '<fieldset class="filter-facet"><legend>'+title+'</legend><div class="facet-options">'+items.map(([id,label])=>'<label class="facet-checkbox"><input data-adv-set="'+name+'" type="checkbox" value="'+esc(id)+'" '+(f[name].includes(id)?'checked':'')+'><span>'+esc(label)+'</span></label>').join('')+'</div></fieldset>'}
 function tri(name,title){return select(name,title,[['all','Не важно'],['yes','Есть'],['no','Нет']])}
 function section(title,description,body,open=false){return '<details class="advanced-filter-section" '+(open?'open':'')+'><summary><strong>'+title+'</strong><small>'+description+'</small></summary><div class="advanced-filter-section-body">'+body+'</div></details>'}
-function renderPanel(){
+function renderPanel(){ensureCurrent();
  const statuses=STATUSES.map(([k,v])=>[k,v]);
  const priorities=[['high','Высокий'],['medium','Средний'],['low','Низкий']];
  const types=Object.keys(state.types).sort((a,b)=>a.localeCompare(b,'ru')).map(x=>[x,x]);
