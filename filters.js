@@ -114,7 +114,7 @@ function renderPanel(){ensureCurrent();
 function apply(){state.taskFilterAdvanced=f;persist();render();updateSummary()}
 function close(){opened=false;$f('#advancedFilterPanel').classList.add('hidden');$f('#advancedFilterButton').setAttribute('aria-expanded','false')}
 function open(){opened=true;renderPanel();$f('#advancedFilterPanel').classList.remove('hidden');$f('#advancedFilterButton').setAttribute('aria-expanded','true');updateSummary()}
-function reset(){f=blank();state.taskFilterAdvanced=f;filter='all';query='';deadlineBefore='';$f('#search').value='';$f('#deadlineDate').value='';persist();render();if(opened)renderPanel();updateSummary()}
+function reset(){const clean=blank();for(const key of Object.keys(f))delete f[key];Object.assign(f,clean);state.taskFilterAdvanced=f;filter='all';query='';deadlineBefore='';$f('#search').value='';$f('#deadlineDate').value='';persist();render();if(opened)renderPanel();updateSummary()}
 $f('#advancedFilterButton').addEventListener('click',()=>opened?close():open());
 $f('#advancedFilterClose').addEventListener('click',close);
 $f('#advancedFilterDone').addEventListener('click',close);
