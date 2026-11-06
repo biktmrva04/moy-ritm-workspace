@@ -16,7 +16,7 @@ function ensureScheduledTimes(){
   const meetingReserved=(state.calendarEvents||[]).filter(e=>e.start&&iso(new Date(e.start))===d).map(e=>{let a=new Date(e.start),b=new Date(e.end);return [a.getHours()*60+a.getMinutes(),b.getHours()*60+b.getMinutes()]});
   for(const occ of items.filter(o=>mins(o.start)===null||mins(o.end)===null||mins(o.end)<=mins(o.start))){
    const t=task(occ.taskId),copies=Math.max(1,occurrences().filter(x=>x.taskId===t.id).length);
-   const duration=clip(snap((effectiveRemaining(t)||1)*60/copies),30,120);
+   const duration=clip(snap((Number(t.estimate)||1)*60/copies),30,120);
    let start=9*60;const overlaps=(a,b)=>[...reserved,...meetingReserved].some(([x,y])=>a<y&&b>x);
    while(start+duration<=H1*60&&overlaps(start,start+duration))start+=15;
    start=clip(start,H0*60,H1*60-duration);
