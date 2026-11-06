@@ -86,7 +86,7 @@ root.addEventListener('click',e=>{
  if(e.target.id==='calPlace'){schedule();return}
  if(e.target.id==='calClear'){if(!confirm('Удалить все импортированные события? Задачи не изменятся.'))return;state.calendarEvents=[];persist();render();return}
  const entry=e.target.closest('[data-cal-block]');if(entry&&entry.dataset.calKind==='meeting'){const evt=state.calendarEvents.find(x=>x.id===entry.dataset.calBlock);if(evt)toast('Созвон: '+evt.title);return}
- if(entry&&entry.dataset.calKind==='task'&&!e.target.closest('[data-cal-resize]')&&!gesture)openTask(occurrences().find(x=>x.id===entry.dataset.calBlock)?.taskId);
+ // Task clicks are handled by pointerup to avoid opening twice.
 });
 root.addEventListener('change',async e=>{
  if(e.target.id==='calTaskChoice'){chosen=e.target.value;return}
