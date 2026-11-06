@@ -333,3 +333,14 @@ body:before{opacity:.25;background-image:radial-gradient(#a8a5e5 .6px,transparen
 #advancedFilterDone{border-radius:11px;padding:11px 18px;background:#302945;color:white;font-weight:800;font-size:11px}
 @media(max-width:1100px){.advanced-filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.advanced-filter-section-body{grid-template-columns:1fr}}
 @media(max-width:670px){.advanced-filter-panel{border-radius:15px}#advancedFilterBody{padding:10px}.advanced-filter-head{padding:18px}.advanced-filter-grid,.advanced-flag-grid{grid-template-columns:1fr}.advanced-filter-section>summary{padding:13px}.advanced-filter-section-body{padding:12px}.filter-preset-bar{display:grid;grid-template-columns:1fr 1fr}.filter-preset-bar label{grid-column:1/-1}.filter-active-row{margin:5px 0 13px}}
+
+/* Project-scoped report template controls */
+.report-project-picker{width:100%;flex:1 1 100%;border:1px solid #e6dcfa;background:linear-gradient(110deg,#fcfaff,#f4efff);border-radius:16px;padding:13px 16px;display:grid;gap:9px}
+.report-project-title{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.report-project-title b{color:#493c75;font-size:12px}
+.report-project-title button{border:1px solid #d8cbf4;border-radius:9px;padding:6px 10px;background:white;color:#7462b7;font-size:11px;font-weight:750}
+.report-project-checks{display:flex;flex-wrap:wrap;gap:8px}
+.report-project-checks label{display:flex;align-items:center;gap:6px;border:1px solid #dcd2f5;padding:8px 10px;border-radius:10px;background:#fff;font-size:11px;color:#695b97;cursor:pointer}
+.report-project-checks label:has(input:checked){background:#ebe5fc;border-color:#ae9aeb}
+.report-project-checks input{accent-color:#8470d8}
+.report-project-picker small{color:#978daf;font-size:10px}
