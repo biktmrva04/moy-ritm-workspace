@@ -2,12 +2,12 @@
 (function(){
 'use strict';
 const spaces={
- work:{title:'Работа',icon:'▣',label:'РАБОТА',defaultView:'board',menu:[['board','▦','Канбан'],['week','▤','Задачи на неделю'],['admin','⚙','Администрирование']]},
+ work:{title:'Работа',icon:'▣',label:'РАБОТА',defaultView:'board',menu:[['board','▦','Канбан'],['week','▤','Задачи на неделю'],['calendar','◷','Календарь'],['admin','⚙','Администрирование']]},
  food:{title:'Вкусно и просто',icon:'◈',label:'ПИТАНИЕ',defaultView:'menu',menu:[['menu','▦','Меню на неделю'],['recipes','♡','Мои рецепты'],['shopping','▤','Список покупок']]},
  lunaria:{title:'Lunaria',icon:'✦',label:'МЕДИАТЕКА',defaultView:'library',menu:[['library','▦','Моя медиатека'],['recommend','✧','Что сегодня?']]},
  home:{title:'Наш дом',icon:'⌂',label:'ДОМАШНИЕ ДЕЛА',defaultView:'today',menu:[['today','☼','Сегодня'],['calendar','▤','Календарь'],['tasks','☑','Все дела']]}
 };
-const byView=v=>['board','week','admin'].includes(v)?'work':spaces[v]?v:'work';
+const byView=v=>['board','week','calendar','admin'].includes(v)?'work':spaces[v]?v:'work';
 const $=selector=>document.querySelector(selector);
 const nav=$('#spaceNav'),menu=$('#spacePickerMenu'),picker=$('#spacePicker');
 const selected={work:state.view==='week'?'week':state.view==='admin'?'admin':'board'};
